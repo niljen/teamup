@@ -193,11 +193,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
   <div class="form-group"><label>Mot de passe</label><input type="password" id="lPass" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
   <button class="btn btn-primary btn-lg" onclick="doLogin()">Se connecter</button>
   <div class="login-switch">Pas de compte ? <a onclick="showV('vRegister')">Créer un compte</a></div>
-  <div class="demo-box">
-    <b>Comptes démo :</b><br>
-    👑 Chef : <b>prof</b> / <b>1234</b><br>
-    🕵️ Spion : <b>youssef</b> / <b>1234</b>
-  </div>
 </div></div></div>
 
 <!-- CRÉER UN COMPTE -->
@@ -449,29 +444,12 @@ var CHEF_CODE='cool555';
 function loadDB(){
   var s=localStorage.getItem('TU2');
   if(s){db=JSON.parse(s);if(!db.messages)db.messages=[];}
-  if(!db.users||!db.users.length){
-    db.users=[
-      {id:'u1',name:'Dupont',username:'prof',password:'1234',role:'teacher',job:'Chef'},
-      {id:'u2',name:'Youssef',username:'youssef',password:'1234',role:'member',job:'Spion'}
-    ];
-    var nw=new Date(),nxt=new Date(nw);
-    nxt.setDate(nw.getDate()+7);
-    db.classes=[
-      {id:'c1',name:'Matematik',subject:'Klass 6A',teacherId:'u1',teacherName:'Lärare Dupont',code:'MATH6A',color:0,studentIds:['u2']},
-      {id:'c2',name:'Naturvetenskap',subject:'Klass 6A',teacherId:'u1',teacherName:'Lärare Dupont',code:'SCI6A',color:1,studentIds:['u2']}
-    ];
-    db.posts=[
-      {id:'p1',classId:'c1',type:'announcement',title:'Välkommen till Team Up! 🎉',content:'Hej allihopa! Välkommen till vår matematikklass på Team Up.',teacherId:'u1',at:nw.toISOString()},
-      {id:'p2',classId:'c1',type:'assignment',title:'Övningar om bråk',content:'Gör övningarna 1 till 5 på sidan 42.',due:nxt.toISOString().split('T')[0],pts:20,teacherId:'u1',at:nw.toISOString()},
-      {id:'p3',classId:'c1',type:'meeting',title:'Repetitionsmöte',content:'Vi repeterar kapitel 3 tillsammans!',meetDate:nxt.toISOString(),meetRoom:'teamup-math6a-repetition',teacherId:'u1',at:nw.toISOString()}
-    ];
-    db.submissions=[];
-    db.messages=[
-      {id:'m1',classId:'c1',userId:'u1',userName:'Lärare Dupont',job:'Taktikgeneral',content:'Hej alla! Välkommen till klasschatten 👋',at:nw.toISOString()},
-      {id:'m2',classId:'c1',userId:'u2',userName:'Youssef',job:'Spion',content:'Tack! Glad att vara här! 😊',at:nw.toISOString()}
-    ];
-    saveDB();
-  }
+  if(!db.users){db.users=[];}
+  if(!db.classes){db.classes=[];}
+  if(!db.posts){db.posts=[];}
+  if(!db.submissions){db.submissions=[];}
+  if(!db.messages){db.messages=[];}
+  saveDB();
 }
 
 function saveDB(){localStorage.setItem('TU2',JSON.stringify(db));}
