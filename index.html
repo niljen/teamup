@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Up</title>
+<style>
+:root{
+  --primary:#1a73e8;--primary-dark:#1557b0;--green:#0f9d58;
+  --red:#d93025;--bg:#f1f3f4;--white:#fff;
+  --text:#202124;--text2:#5f6368;--border:#dadce0;
+  --gold:#f9ab00;--chef:#9334e6;
+  --shadow:0 1px 3px rgba(0,0,0,0.12);
+  --shadow-lg:0 4px 6px rgba(0,0,0,0.16);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.navbar{background:#fff;border-bottom:1px solid var(--border);height:64px;display:flex;align-items:center;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.navbar-brand{font-size:22px;font-weight:700;color:var(--primary);cursor:pointer;display:flex;align-items:center;gap:8px;}
+.navbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.nav-job{font-size:12px;padding:3px 10px;border-radius:12px;font-weight:600;}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;cursor:pointer;flex-shrink:0;}
+.btn{padding:8px 20px;border:none;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;}
+.btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);}
+.btn-secondary{background:transparent;color:var(--primary);border:1px solid var(--border);}.btn-secondary:hover{background:#e8f0fe;}
+.btn-green{background:var(--green);color:#fff;}.btn-green:hover{background:#0a7c47;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-video{background:linear-gradient(135deg,#1a73e8,#9334e6);color:#fff;}.btn-video:hover{opacity:.9;}
+.btn-sm{padding:6px 14px;font-size:13px;}
+.btn-lg{padding:12px 28px;font-size:16px;border-radius:8px;width:100%;justify-content:center;}
+.view{display:none;}.view.active{display:block;}
+
+/* LOGIN */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a73e8,#9334e6);padding:16px;}
+.login-card{background:#fff;border-radius:16px;padding:36px;width:100%;max-width:440px;box-shadow:var(--shadow-lg);}
+.login-logo{text-align:center;font-size:42px;margin-bottom:8px;}
+.login-title{text-align:center;font-size:28px;font-weight:700;margin-bottom:4px;color:var(--primary);}
+.login-sub{text-align:center;color:var(--text2);font-size:14px;margin-bottom:24px;}
+.role-tabs{display:flex;gap:8px;margin-bottom:20px;}
+.role-tab{flex:1;padding:10px;text-align:center;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;background:#fff;transition:all .2s;}
+.role-tab.active{border-color:var(--primary);background:#e8f0fe;color:var(--primary);}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-size:15px;outline:none;font-family:inherit;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(26,115,232,.15);}
+.form-group textarea{resize:vertical;min-height:80px;}
+.login-switch{text-align:center;margin-top:14px;font-size:14px;color:var(--text2);}
+.login-switch a{color:var(--primary);cursor:pointer;font-weight:500;}
+.error-msg{background:#fce8e6;color:var(--red);padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:12px;display:none;}
+.chef-field{background:linear-gradient(135deg,#f3e8ff,#e8f0fe);border-radius:8px;padding:14px;margin-bottom:14px;border:1px solid #d8b4fe;}
+.chef-field label{color:var(--chef) !important;}
+.demo-box{margin-top:16px;padding:12px;background:#f8f9fa;border-radius:8px;font-size:13px;color:var(--text2);}
+
+/* JOB BADGES */
+.job-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;font-size:12px;font-weight:600;}
+.job-Sekreterare{background:#e8f0fe;color:#1a73e8;}
+.job-Spion{background:#1a1a2e;color:#00d2ff;}
+.job-Taktikgeneral{background:#fce8e6;color:#c0392b;}
+.job-Detektiv{background:#fef3c7;color:#92400e;}
+.job-Planerare{background:#e6f4ea;color:#0f9d58;}
+.job-Utförare{background:#f0f0f0;color:#444;}
+.job-Chef{background:linear-gradient(135deg,#f9ab00,#e37400);color:#fff;}
+
+/* PAGES */
+.page{padding:24px 20px;max-width:1200px;margin:0 auto;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.page-title{font-size:22px;font-weight:700;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+.class-card{border-radius:8px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .2s;background:#fff;}
+.class-card:hover{box-shadow:var(--shadow-lg);}
+.class-header{height:100px;padding:16px;color:#fff;position:relative;}
+.class-name{font-size:20px;font-weight:700;}
+.class-sub{font-size:13px;opacity:.9;margin-top:3px;}
+.class-teacher{font-size:12px;opacity:.85;position:absolute;bottom:10px;left:16px;}
+.class-emoji{position:absolute;right:12px;bottom:6px;font-size:38px;}
+.class-footer{padding:8px 16px;border-top:1px solid var(--border);font-size:13px;color:var(--text2);display:flex;align-items:center;justify-content:space-between;}
+.c0{background:linear-gradient(135deg,#1a73e8,#0d47a1);}
+.c1{background:linear-gradient(135deg,#0f9d58,#087443);}
+.c2{background:linear-gradient(135deg,#f4511e,#bf360c);}
+.c3{background:linear-gradient(135deg,#9334e6,#6200ea);}
+.c4{background:linear-gradient(135deg,#f9ab00,#e37400);}
+.c5{background:linear-gradient(135deg,#00bcd4,#006064);}
+.class-banner{height:200px;padding:24px;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;position:relative;}
+.banner-name{font-size:32px;font-weight:700;}
+.banner-sub{font-size:16px;opacity:.9;}
+.banner-code{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;}
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px;overflow-x:auto;}
+.tab{padding:12px 20px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+.stream-layout{display:grid;grid-template-columns:220px 1fr;gap:20px;}
+.card{background:#fff;border-radius:8px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px;}
+.card h4{font-size:13px;color:var(--text2);font-weight:500;margin-bottom:10px;}
+.create-bar{background:#fff;border-radius:8px;box-shadow:var(--shadow);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;transition:box-shadow .2s;}
+.create-bar:hover{box-shadow:var(--shadow-lg);}
+.create-placeholder{color:var(--text2);font-size:15px;}
+.post-card{background:#fff;border-radius:8px;box-shadow:var(--shadow);margin-bottom:16px;}
+.post-head{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f0f0f0;}
+.post-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.icon-ann{background:#e8f0fe;}.icon-ass{background:#fce8e6;}.icon-vid{background:#f3e8ff;}
+.post-who{font-size:15px;font-weight:500;}
+.post-type{font-size:12px;color:var(--text2);}
+.post-date{font-size:12px;color:var(--text2);margin-left:auto;}
+.post-body{padding:14px 16px;}
+.post-title{font-size:17px;font-weight:600;margin-bottom:6px;}
+.post-text{font-size:14px;color:var(--text2);line-height:1.6;}
+.post-foot{padding:8px 16px;border-top:1px solid #f0f0f0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.badge{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:500;}
+.badge-red{background:#fce8e6;color:var(--red);}
+.badge-green{background:#e6f4ea;color:var(--green);}
+.badge-blue{background:#e8f0fe;color:var(--primary);}
+.badge-purple{background:#f3e8ff;color:#9334e6;}
+.detail-layout{display:grid;grid-template-columns:1fr 280px;gap:20px;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--primary);cursor:pointer;font-size:15px;font-weight:500;padding:8px 0;border:none;background:none;margin-bottom:16px;}
+.back-btn:hover{text-decoration:underline;}
+.alert{padding:12px 16px;border-radius:8px;font-size:14px;margin-bottom:14px;}
+.alert-ok{background:#e6f4ea;color:#137333;}
+.sub-card{background:#f8f9fa;border-radius:8px;padding:14px;margin-bottom:10px;border:1px solid var(--border);}
+.table{width:100%;border-collapse:collapse;}
+.table th{text-align:left;padding:10px 14px;background:#f8f9fa;font-size:13px;color:var(--text2);font-weight:500;border-bottom:2px solid var(--border);}
+.table td{padding:10px 14px;font-size:14px;border-bottom:1px solid var(--border);}
+.table tr:hover td{background:#f8f9fa;}
+.member-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.modal-title{font-size:20px;font-weight:600;}
+.modal-close{background:none;border:none;font-size:26px;cursor:pointer;color:var(--text2);line-height:1;}
+.empty{text-align:center;padding:60px 20px;color:var(--text2);}
+.empty .em{font-size:56px;margin-bottom:14px;}
+
+/* VIDEO */
+.video-container{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;}
+.video-container.open{display:flex;}
+.video-bar{background:#1a1a1a;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+.video-title{color:#fff;font-size:16px;font-weight:600;}
+.video-close{background:#d93025;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;}
+#jitsiFrame{flex:1;border:none;width:100%;height:100%;}
+
+/* MÖTEN */
+.meeting-card{background:#fff;border-radius:8px;box-shadow:var(--shadow);padding:16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.meeting-info{flex:1;}
+.meeting-name{font-size:16px;font-weight:600;margin-bottom:3px;}
+.meeting-sub{font-size:13px;color:var(--text2);}
+
+/* CHATT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 280px);min-height:400px;background:#fff;border-radius:8px;box-shadow:var(--shadow);overflow:hidden;}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.chat-msg{display:flex;flex-direction:column;max-width:75%;}
+.chat-msg.mine{align-self:flex-end;align-items:flex-end;}
+.chat-msg.theirs{align-self:flex-start;align-items:flex-start;}
+.chat-meta{font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:5px;}
+.chat-bubble{padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.5;word-break:break-word;}
+.chat-msg.mine .chat-bubble{background:var(--primary);color:#fff;border-bottom-right-radius:4px;}
+.chat-msg.theirs .chat-bubble{background:#f1f3f4;color:var(--text);border-bottom-left-radius:4px;}
+.chat-msg.chef-msg .chat-bubble{background:linear-gradient(135deg,#9334e6,#f9ab00);color:#fff;}
+.chat-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:#fff;}
+.chat-bar input{flex:1;padding:10px 16px;border:1px solid var(--border);border-radius:24px;font-size:14px;outline:none;font-family:inherit;}
+.chat-bar input:focus{border-color:var(--primary);}
+.chat-bar button{background:var(--primary);color:#fff;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chat-bar button:hover{background:var(--primary-dark);}
+.chat-empty{text-align:center;color:var(--text2);padding:40px 20px;font-size:14px;}
+
+@media(max-width:700px){
+  .stream-layout,.detail-layout{grid-template-columns:1fr;}
+  .stream-sidebar{display:none;}
+  .class-banner{height:150px;}
+  .banner-name{font-size:24px;}
+  .chat-wrap{height:calc(100vh - 220px);}
+}
+</style>
+</head>
+<body>
+
+<!-- VIDEO MÖTE -->
+<div class="video-container" id="videoContainer">
+  <div class="video-bar">
+    <div class="video-title" id="videoTitle">🎥 Team Up — Möte</div>
+    <button class="video-close" onclick="closeVideo()">✕ Lämna mötet</button>
+  </div>
+  <iframe id="jitsiFrame" allow="camera; microphone; fullscreen; display-capture"></iframe>
+</div>
+
+<!-- CONNEXION -->
+<div id="vLogin" class="view active">
+<div class="login-page">
+<div class="login-card">
+  <div class="login-logo">🤝</div>
+  <div class="login-title">Team Up</div>
+  <div class="login-sub">Ta salle de classe virtuelle</div>
+  <div id="errLogin" class="error-msg"></div>
+  <div class="form-group"><label>Nom d'utilisateur</label><input id="lUser" placeholder="ex: youssef"></div>
+  <div class="form-group"><label>Mot de passe</label><input type="password" id="lPass" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+  <button class="btn btn-primary btn-lg" onclick="doLogin()">Se connecter</button>
+  <div class="login-switch">Pas de compte ? <a onclick="showV('vRegister')">Créer un compte</a></div>
+  <div class="demo-box">
+    <b>Comptes démo :</b><br>
+    👑 Chef : <b>prof</b> / <b>1234</b><br>
+    🕵️ Spion : <b>youssef</b> / <b>1234</b>
+  </div>
+</div></div></div>
+
+<!-- CRÉER UN COMPTE -->
+<div id="vRegister" class="view">
+<div class="login-page">
+<div class="login-card">
+  <div class="login-logo">🤝</div>
+  <div class="login-title">Nouveau compte</div>
+  <div class="login-sub">Rejoins Team Up !</div>
+  <div id="errReg" class="error-msg"></div>
+  <div class="form-group"><label>Prénom et nom</label><input id="rName" placeholder="ex: Youssef Martin"></div>
+  <div class="form-group"><label>Nom d'utilisateur</label><input id="rUser" placeholder="ex: youssef123"></div>
+  <div class="form-group"><label>Mot de passe</label><input type="password" id="rPass" placeholder="••••••"></div>
+  <div class="form-group">
+    <label>Ton métier</label>
+    <select id="rJob" onchange="onJobChange()">
+      <option value="Sekreterare">🗂️ Sekreterare</option>
+      <option value="Spion">🕵️ Spion</option>
+      <option value="Taktikgeneral">⚔️ Taktikgeneral</option>
+      <option value="Detektiv">🔍 Detektiv</option>
+      <option value="Planerare">📋 Planerare</option>
+      <option value="Utförare">🔧 Utförare</option>
+      <option value="Chef">👑 Chef</option>
+    </select>
+  </div>
+  <div class="chef-field" id="chefCodeField" style="display:none">
+    <div class="form-group" style="margin-bottom:0">
+      <label>👑 Code secret du Chef</label>
+      <input id="rChefCode" placeholder="Entre le code secret...">
+    </div>
+    <div style="font-size:12px;color:var(--chef);margin-top:6px">⚠️ Il ne peut y avoir qu'un seul Chef !</div>
+  </div>
+  <button class="btn btn-primary btn-lg" onclick="doRegister()">Créer mon compte</button>
+  <div class="login-switch">Déjà un compte ? <a onclick="showV('vLogin')">Se connecter</a></div>
+</div></div></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar" style="display:none">
+  <div class="navbar-brand" onclick="showDashboard()">🤝 Team Up</div>
+  <div class="navbar-right">
+    <button class="btn btn-video btn-sm" id="btnQuickMeet" onclick="openQuickMeeting()">🎥 Snabbt möte</button>
+    <span id="navJobBadge"></span>
+    <span id="navName" style="font-size:14px;color:var(--text2)"></span>
+    <div class="avatar" id="navAv" onclick="doLogout()" title="Logga ut"></div>
+  </div>
+</nav>
+
+<!-- DASHBOARD -->
+<div id="vDash" class="view">
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">Mina kurser</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-video" onclick="openQuickMeeting()">🎥 Snabbt möte</button>
+      <button class="btn btn-secondary" id="btnJoin" onclick="openModal('mJoin')">+ Gå med</button>
+      <button class="btn btn-primary" id="btnCreate" onclick="openModal('mCreate')">+ Skapa kurs</button>
+    </div>
+  </div>
+  <div id="classGrid" class="grid"></div>
+</div></div>
+
+<!-- KLASS VY -->
+<div id="vClass" class="view">
+  <div id="classBanner" class="class-banner">
+    <div id="bannerCode" class="banner-code"></div>
+    <div id="bannerName" class="banner-name"></div>
+    <div id="bannerSub" class="banner-sub"></div>
+  </div>
+  <div class="page" style="padding-top:0">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('stream',this)">📢 Flöde</div>
+      <div class="tab" onclick="switchTab('chat',this)">💬 Chatt</div>
+      <div class="tab" onclick="switchTab('meetings',this)">🎥 Möten</div>
+      <div class="tab" onclick="switchTab('members',this)">👥 Medlemmar</div>
+      <div class="tab" id="tabGrades" style="display:none" onclick="switchTab('grades',this)">📊 Betyg</div>
+    </div>
+    <div id="tabStream">
+      <div class="stream-layout">
+        <div class="stream-sidebar">
+          <div class="card"><h4>Kurskod</h4><div id="sideCode" style="font-size:26px;font-weight:700;color:var(--primary);letter-spacing:3px"></div></div>
+          <div class="card"><h4>Kommande uppgifter</h4><div id="upcoming" style="font-size:13px;color:var(--text2)"></div></div>
+          <div class="card" style="background:linear-gradient(135deg,#1a73e8,#9334e6);color:#fff;cursor:pointer;" onclick="startClassMeeting()">
+            <div style="font-size:22px;margin-bottom:6px">🎥</div>
+            <div style="font-weight:700;font-size:15px">Starta ett möte</div>
+            <div style="font-size:12px;opacity:.85;margin-top:3px">Med hela klassen</div>
+          </div>
+        </div>
+        <div>
+          <div class="create-bar" id="createBar" onclick="openPostModal()" style="display:none">
+            <div class="avatar" id="streamAv" style="width:36px;height:36px;font-size:14px;background:var(--primary)"></div>
+            <div class="create-placeholder">Meddela något till klassen...</div>
+          </div>
+          <div id="streamPosts"></div>
+        </div>
+      </div>
+    </div>
+    <div id="tabChat" style="display:none">
+      <div class="chat-wrap">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-bar">
+          <input id="chatInput" placeholder="Skriv ett meddelande..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+    <div id="tabMeetings" style="display:none"><div id="meetingsInner" style="max-width:700px"></div></div>
+    <div id="tabMembers" style="display:none">
+      <div class="card" style="margin-bottom:16px"><h4>LÄRARE</h4><div id="memberTeacher"></div></div>
+      <div class="card"><h4>ELEVER (<span id="memberCount">0</span>)</h4><div id="memberStudents"></div></div>
+    </div>
+    <div id="tabGradesContent" style="display:none"><div id="gradesInner"></div></div>
+  </div>
+</div>
+
+<!-- UPPGIFT DETALJ -->
+<div id="vAssign" class="view">
+<div class="page">
+  <button class="back-btn" onclick="backToClass()">← Tillbaka till kursen</button>
+  <div class="detail-layout">
+    <div>
+      <div class="card" style="padding:24px;margin-bottom:16px">
+        <div id="aTitle" style="font-size:26px;font-weight:700;margin-bottom:10px"></div>
+        <div id="aBadges" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"></div>
+        <div id="aContent" style="font-size:15px;color:var(--text2);line-height:1.7"></div>
+      </div>
+      <div id="aStudentArea" class="card" style="padding:20px">
+        <h3 style="margin-bottom:14px">Mitt arbete</h3>
+        <div id="aSubStatus"></div>
+        <div id="aSubForm">
+          <div class="form-group"><label>Ditt svar</label><textarea id="aSubText" rows="5" placeholder="Skriv ditt svar här..."></textarea></div>
+          <button class="btn btn-primary" onclick="submitAssignment()">✅ Lämna in uppgiften</button>
+        </div>
+      </div>
+      <div id="aTeacherArea" style="display:none">
+        <h3 style="margin-bottom:14px">Inlämnade arbeten</h3>
+        <div id="aSubList"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Sista datum</div>
+        <div id="aDue" style="font-weight:600;margin-bottom:14px"></div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Poäng</div>
+        <div id="aPoints" style="font-weight:600;margin-bottom:16px"></div>
+        <button class="btn btn-video" style="width:100%;justify-content:center" onclick="startClassMeeting()">🎥 Kursmöte</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- MODAL SKAPA KURS -->
+<div class="overlay" id="mCreate">
+<div class="modal">
+  <div class="modal-head"><div class="modal-title">Skapa en kurs</div><button class="modal-close" onclick="closeModal('mCreate')">×</button></div>
+  <div class="form-group"><label>Kursnamn</label><input id="cName" placeholder="t.ex. Matematik"></div>
+  <div class="form-group"><label>Ämne / Klass</label><input id="cSub" placeholder="t.ex. 6A"></div>
+  <div class="form-group"><label>Färg</label>
+    <select id="cColor">
+      <option value="0">🔵 Blå</option><option value="1">🟢 Grön</option>
+      <option value="2">🔴 Röd</option><option value="3">🟣 Lila</option>
+      <option value="4">🟡 Gul</option><option value="5">🩵 Cyan</option>
+    </select>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button class="btn btn-secondary" onclick="closeModal('mCreate')">Avbryt</button>
+    <button class="btn btn-primary" onclick="createClass()">Skapa</button>
+  </div>
+</div></div>
+
+<!-- MODAL GÅ MED -->
+<div class="overlay" id="mJoin">
+<div class="modal">
+  <div class="modal-head"><div class="modal-title">Gå med i en kurs</div><button class="modal-close" onclick="closeModal('mJoin')">×</button></div>
+  <div class="form-group"><label>Kurskod</label><input id="jCode" placeholder="t.ex. MATH6A" style="text-transform:uppercase;letter-spacing:4px;font-size:22px;text-align:center"></div>
+  <div id="errJoin" class="error-msg"></div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button class="btn btn-secondary" onclick="closeModal('mJoin')">Avbryt</button>
+    <button class="btn btn-primary" onclick="joinClass()">Gå med</button>
+  </div>
+</div></div>
+
+<!-- MODAL PUBLICERA -->
+<div class="overlay" id="mPost">
+<div class="modal">
+  <div class="modal-head"><div class="modal-title">Nytt inlägg</div><button class="modal-close" onclick="closeModal('mPost')">×</button></div>
+  <div class="role-tabs" style="margin-bottom:20px">
+    <div class="role-tab active" id="ptAnn" onclick="setPostType('announcement')">📢 Meddelande</div>
+    <div class="role-tab" id="ptAss" onclick="setPostType('assignment')">📝 Uppgift</div>
+    <div class="role-tab" id="ptVid" onclick="setPostType('meeting')">🎥 Möte</div>
+  </div>
+  <!-- tab möte visible seulement pour Chef (géré en JS) -->
+  <div class="form-group"><label>Titel</label><input id="pTitle" placeholder="Titel..."></div>
+  <div class="form-group"><label>Beskrivning</label><textarea id="pContent" rows="3" placeholder="Beskrivning..."></textarea></div>
+  <div id="assignFields" style="display:none">
+    <div class="form-group"><label>Sista datum</label><input type="date" id="pDue"></div>
+    <div class="form-group"><label>Poäng</label><input type="number" id="pPts" placeholder="t.ex. 20" min="0"></div>
+  </div>
+  <div id="meetingFields" style="display:none">
+    <div class="form-group"><label>Datum och tid</label><input type="datetime-local" id="pMeetDate"></div>
+    <div class="form-group">
+      <label>👥 Inviterade medlemmar</label>
+      <div id="inviteList" style="background:#f8f9fa;border-radius:8px;padding:10px;border:1px solid var(--border);">
+        <!-- rempli dynamiquement -->
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button class="btn btn-secondary" onclick="closeModal('mPost')">Avbryt</button>
+    <button class="btn btn-primary" onclick="createPost()">Publicera</button>
+  </div>
+</div></div>
+
+<!-- MODAL RÄTTA -->
+<div class="overlay" id="mGrade">
+<div class="modal">
+  <div class="modal-head"><div class="modal-title">Rätta uppgiften</div><button class="modal-close" onclick="closeModal('mGrade')">×</button></div>
+  <div id="gradeInfo" style="background:#f8f9fa;border-radius:8px;padding:14px;margin-bottom:16px"></div>
+  <div class="form-group"><label>Betyg (av <span id="gradeMax"></span> poäng)</label><input type="number" id="gradeVal" min="0" placeholder="t.ex. 16"></div>
+  <div class="form-group"><label>Kommentar</label><textarea id="gradeFb" rows="3" placeholder="Bra jobbat!"></textarea></div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button class="btn btn-secondary" onclick="closeModal('mGrade')">Avbryt</button>
+    <button class="btn btn-green" onclick="submitGrade()">💾 Spara betyg</button>
+  </div>
+</div></div>
+
+<!-- MODAL SNABBT MÖTE -->
+<div class="overlay" id="mQuickMeet">
+<div class="modal">
+  <div class="modal-head"><div class="modal-title">🎥 Snabbt möte</div><button class="modal-close" onclick="closeModal('mQuickMeet')">×</button></div>
+  <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Skapa eller gå med i ett möte direkt. Dela länken med andra!</p>
+  <div class="form-group"><label>Mötesnamn</label><input id="quickMeetName" placeholder="t.ex. revision-matte"></div>
+  <div style="display:flex;gap:10px;margin-top:8px">
+    <button class="btn btn-secondary" onclick="closeModal('mQuickMeet')">Avbryt</button>
+    <button class="btn btn-video" onclick="startQuickMeeting()">🚀 Starta</button>
+  </div>
+</div></div>
+
+<script>
+var db={users:[],classes:[],posts:[],submissions:[],messages:[]};
+var me=null,curClass=null,curPost=null;
+var postType='announcement',gradingId=null;
+
+var JOBS={
+  'Sekreterare':'🗂️','Spion':'🕵️','Taktikgeneral':'⚔️',
+  'Detektiv':'🔍','Planerare':'📋','Utförare':'🔧','Chef':'👑'
+};
+var CHEF_CODE='cool555';
+
+function loadDB(){
+  var s=localStorage.getItem('TU2');
+  if(s){db=JSON.parse(s);if(!db.messages)db.messages=[];}
+  if(!db.users||!db.users.length){
+    db.users=[
+      {id:'u1',name:'Dupont',username:'prof',password:'1234',role:'teacher',job:'Chef'},
+      {id:'u2',name:'Youssef',username:'youssef',password:'1234',role:'member',job:'Spion'}
+    ];
+    var nw=new Date(),nxt=new Date(nw);
+    nxt.setDate(nw.getDate()+7);
+    db.classes=[
+      {id:'c1',name:'Matematik',subject:'Klass 6A',teacherId:'u1',teacherName:'Lärare Dupont',code:'MATH6A',color:0,studentIds:['u2']},
+      {id:'c2',name:'Naturvetenskap',subject:'Klass 6A',teacherId:'u1',teacherName:'Lärare Dupont',code:'SCI6A',color:1,studentIds:['u2']}
+    ];
+    db.posts=[
+      {id:'p1',classId:'c1',type:'announcement',title:'Välkommen till Team Up! 🎉',content:'Hej allihopa! Välkommen till vår matematikklass på Team Up.',teacherId:'u1',at:nw.toISOString()},
+      {id:'p2',classId:'c1',type:'assignment',title:'Övningar om bråk',content:'Gör övningarna 1 till 5 på sidan 42.',due:nxt.toISOString().split('T')[0],pts:20,teacherId:'u1',at:nw.toISOString()},
+      {id:'p3',classId:'c1',type:'meeting',title:'Repetitionsmöte',content:'Vi repeterar kapitel 3 tillsammans!',meetDate:nxt.toISOString(),meetRoom:'teamup-math6a-repetition',teacherId:'u1',at:nw.toISOString()}
+    ];
+    db.submissions=[];
+    db.messages=[
+      {id:'m1',classId:'c1',userId:'u1',userName:'Lärare Dupont',job:'Taktikgeneral',content:'Hej alla! Välkommen till klasschatten 👋',at:nw.toISOString()},
+      {id:'m2',classId:'c1',userId:'u2',userName:'Youssef',job:'Spion',content:'Tack! Glad att vara här! 😊',at:nw.toISOString()}
+    ];
+    saveDB();
+  }
+}
+
+function saveDB(){localStorage.setItem('TU2',JSON.stringify(db));}
+function uid(){return 'i'+Date.now()+Math.random().toString(36).slice(2,6);}
+function gv(id){var el=document.getElementById(id);return el?(el.value||'').trim():'';}
+function showErr(id,msg){var el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+function fDate(d){if(!d)return'';return new Date(d).toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});}
+function fDT(d){if(!d)return'';var dt=new Date(d);return dt.toLocaleDateString('sv-SE',{day:'numeric',month:'short'})+' kl '+dt.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});}
+function fTime(d){if(!d)return'';var dt=new Date(d);return dt.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});}
+
+function jobBadgeHtml(job){
+  if(!job) return '';
+  var icon=JOBS[job]||'';
+  return '<span class="job-badge job-'+job+'">'+icon+' '+job+'</span>';
+}
+
+// ── Chef-kodfält ──
+function onJobChange(){
+  var j=document.getElementById('rJob').value;
+  document.getElementById('chefCodeField').style.display=j==='Chef'?'':'none';
+}
+
+function isChefJob(job){return job==='Chef';}
+
+// ── VIDEO ──
+function openMeeting(roomName,title){
+  var room=roomName.replace(/[^a-zA-Z0-9\-]/g,'').toLowerCase();
+  if(!room) room='teamup-'+Date.now();
+  document.getElementById('videoTitle').textContent='🎥 '+(title||room);
+  document.getElementById('jitsiFrame').src='https://meet.jit.si/'+room+'?lang=sv#config.prejoinPageEnabled=false&userInfo.displayName='+encodeURIComponent(me.name+(me.job?' ('+me.job+')':''));
+  document.getElementById('videoContainer').classList.add('open');
+}
+function closeVideo(){document.getElementById('videoContainer').classList.remove('open');document.getElementById('jitsiFrame').src='';}
+function startClassMeeting(){if(!curClass)return;openMeeting('teamup-'+curClass.code.toLowerCase(),curClass.name);}
+function openQuickMeeting(){openModal('mQuickMeet');}
+function startQuickMeeting(){var name=gv('quickMeetName')||'mote-'+Date.now();closeModal('mQuickMeet');openMeeting('teamup-'+name,name);}
+
+// ── AUTH ──
+
+function doLogin(){
+  var u=gv('lUser'),p=gv('lPass'),user=null;
+  for(var i=0;i<db.users.length;i++){if(db.users[i].username===u&&db.users[i].password===p){user=db.users[i];break;}}
+  if(!user){showErr('errLogin','Nom d\'utilisateur ou mot de passe incorrect');return;}
+  me=user;onLogin();
+}
+
+function doRegister(){
+  var name=gv('rName'),user=gv('rUser'),pass=gv('rPass'),job=document.getElementById('rJob').value;
+  if(!name||!user||!pass){showErr('errReg','Remplis tous les champs');return;}
+  for(var i=0;i<db.users.length;i++){if(db.users[i].username===user){showErr('errReg','Ce nom d\'utilisateur est déjà pris');return;}}
+  if(job==='Chef'){
+    var code=gv('rChefCode');
+    if(code!==CHEF_CODE){showErr('errReg','❌ Code secret incorrect !');return;}
+    for(var i=0;i<db.users.length;i++){if(db.users[i].job==='Chef'){showErr('errReg','❌ Il y a déjà un Chef ! Il ne peut y en avoir qu\'un seul.');return;}}
+  }
+  var u={id:uid(),name:name,username:user,password:pass,role:'member',job:job};
+  db.users.push(u);saveDB();me=u;onLogin();
+}
+
+function doLogout(){me=null;document.getElementById('navbar').style.display='none';showV('vLogin');}
+
+function onLogin(){
+  document.getElementById('navbar').style.display='flex';
+  var av=document.getElementById('navAv');
+  av.textContent=me.name[0].toUpperCase();
+  var jobColors={'Chef':'#9334e6','Spion':'#1a1a2e','Taktikgeneral':'#c0392b','Detektiv':'#92400e','Planerare':'#0f9d58','Sekreterare':'#1a73e8','Utförare':'#555'};
+  av.style.background=me.job&&jobColors[me.job]?jobColors[me.job]:'#1a73e8';
+  document.getElementById('navName').textContent=me.name;
+  document.getElementById('navJobBadge').innerHTML=me.job?jobBadgeHtml(me.job):'';
+  document.getElementById('btnCreate').style.display='';
+  document.getElementById('btnJoin').style.display='';
+  var isChef=me.job==='Chef';
+  document.getElementById('btnQuickMeet').style.display=isChef?'':'none';
+  showDashboard();
+}
+
+function showV(id){var v=document.querySelectorAll('.view');for(var i=0;i<v.length;i++)v[i].classList.remove('active');document.getElementById(id).classList.add('active');}
+function showDashboard(){renderDash();showV('vDash');}
+
+function getMyClasses(){
+  var list=[];
+  for(var i=0;i<db.classes.length;i++){
+    var c=db.classes[i];
+    if(c.teacherId===me.id||c.studentIds.indexOf(me.id)>=0)list.push(c);
+  }
+  return list;
+}
+
+function renderDash(){
+  var emojis=['📐','🔬','📚','🎨','🌍','⚗️','🧮','🎵','💻','🏃'];
+  var list=getMyClasses();
+  var g=document.getElementById('classGrid');
+  if(!list.length){g.innerHTML='<div class="empty"><div class="em">📚</div><p>'+(me.role==='teacher'?'Skapa din första kurs!':'Gå med i en kurs med en kod!')+'</p></div>';return;}
+  var html='';
+  for(var i=0;i<list.length;i++){
+    var c=list[i];
+    var cIdx=i;
+    var btn=me.role==='teacher'
+      ?'<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteClass(\''+c.id+'\')">🗑</button>'
+      :'<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();leaveClass(\''+c.id+'\')">↩</button>';
+    html+='<div class="class-card" onclick="openClass(\''+c.id+'\')">';
+    html+='<div class="class-header c'+c.color+'">';
+    html+='<div class="class-name">'+c.name+'</div><div class="class-sub">'+c.subject+'</div>';
+    html+='<div class="class-teacher">'+c.teacherName+'</div>';
+    html+='<div class="class-emoji">'+emojis[cIdx%emojis.length]+'</div></div>';
+    html+='<div class="class-footer"><span>'+c.studentIds.length+' elev'+(c.studentIds.length!==1?'er':'')+'</span>';
+    html+='<div style="display:flex;gap:6px"><button class="btn btn-video btn-sm" onclick="event.stopPropagation();curClass=getMyClasses()['+cIdx+'];startClassMeeting()">🎥</button>'+btn+'</div></div></div>';
+  }
+  g.innerHTML=html;
+}
+
+function deleteClass(id){
+  if(!confirm('Ta bort kursen?'))return;
+  db.classes=db.classes.filter(function(c){return c.id!==id;});
+  var pids=db.posts.filter(function(p){return p.classId===id;}).map(function(p){return p.id;});
+  db.posts=db.posts.filter(function(p){return p.classId!==id;});
+  db.submissions=db.submissions.filter(function(s){return pids.indexOf(s.postId)<0;});
+  db.messages=db.messages.filter(function(m){return m.classId!==id;});
+  saveDB();renderDash();
+}
+function leaveClass(id){
+  if(!confirm('Lämna kursen?'))return;
+  for(var i=0;i<db.classes.length;i++){if(db.classes[i].id===id){db.classes[i].studentIds=db.classes[i].studentIds.filter(function(s){return s!==me.id;});break;}}
+  saveDB();renderDash();
+}
+
+function openClass(id){
+  for(var i=0;i<db.classes.length;i++){if(db.classes[i].id===id){curClass=db.classes[i];break;}}
+  var iT=true;
+  document.getElementById('classBanner').className='class-banner c'+curClass.color;
+  document.getElementById('bannerName').textContent=curClass.name;
+  document.getElementById('bannerSub').textContent=curClass.subject;
+  document.getElementById('bannerCode').textContent='Kod: '+curClass.code;
+  document.getElementById('sideCode').textContent=curClass.code;
+  document.getElementById('tabGrades').style.display=iT?'':'none';
+  document.getElementById('createBar').style.display=iT?'':'none';
+  var sa=document.getElementById('streamAv');sa.textContent=me.name[0];
+  var tabs=document.querySelectorAll('.tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',i===0);
+  document.getElementById('tabStream').style.display='';
+  document.getElementById('tabChat').style.display='none';
+  document.getElementById('tabMeetings').style.display='none';
+  document.getElementById('tabMembers').style.display='none';
+  document.getElementById('tabGradesContent').style.display='none';
+  renderStream();showV('vClass');
+}
+
+function switchTab(t,el){
+  var tabs=document.querySelectorAll('.tab');for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');
+  if(el)el.classList.add('active');
+  document.getElementById('tabStream').style.display=t==='stream'?'':'none';
+  document.getElementById('tabChat').style.display=t==='chat'?'':'none';
+  document.getElementById('tabMeetings').style.display=t==='meetings'?'':'none';
+  document.getElementById('tabMembers').style.display=t==='members'?'':'none';
+  document.getElementById('tabGradesContent').style.display=t==='grades'?'':'none';
+  if(t==='members')renderMembers();
+  if(t==='grades')renderGrades();
+  if(t==='meetings')renderMeetings();
+  if(t==='chat'){renderChat();document.getElementById('chatInput').focus();}
+}
+
+// ── CHATT ──
+function renderChat(){
+  if(!curClass)return;
+  var msgs=db.messages.filter(function(m){return m.classId===curClass.id;});
+  msgs.sort(function(a,b){return new Date(a.at)-new Date(b.at);});
+  var wrap=document.getElementById('chatMessages');
+  if(!msgs.length){wrap.innerHTML='<div class="chat-empty">💬 Inga meddelanden ännu.<br>Var den första att skriva!</div>';return;}
+  var html='';
+  var lastDate='';
+  for(var i=0;i<msgs.length;i++){
+    var m=msgs[i];
+    var isMine=m.userId===me.id;
+    var isChef=m.job==='Chef';
+    var msgDate=new Date(m.at).toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+    if(msgDate!==lastDate){
+      html+='<div style="text-align:center;font-size:11px;color:var(--text2);margin:4px 0">'+msgDate+'</div>';
+      lastDate=msgDate;
+    }
+    html+='<div class="chat-msg '+(isMine?'mine':'theirs')+(isChef?' chef-msg':'')+(isMine&&isChef?' chef-msg':'')+'">';
+    if(!isMine){
+      html+='<div class="chat-meta">';
+      html+=jobBadgeHtml(m.job)+' <b>'+m.userName+'</b>';
+      html+=' <span style="font-size:10px">'+fTime(m.at)+'</span></div>';
+    }
+    html+='<div class="chat-bubble">'+escHtml(m.content)+'</div>';
+    if(isMine) html+='<div class="chat-meta" style="margin-top:3px">'+fTime(m.at)+'</div>';
+    html+='</div>';
+  }
+  wrap.innerHTML=html;
+  wrap.scrollTop=wrap.scrollHeight;
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function sendChat(){
+  var txt=gv('chatInput');
+  if(!txt||!curClass)return;
+  var msg={id:uid(),classId:curClass.id,userId:me.id,userName:me.name,job:me.job||'',content:txt,at:new Date().toISOString()};
+  db.messages.push(msg);saveDB();
+  document.getElementById('chatInput').value='';
+  renderChat();
+}
+
+// ── MÖTEN ──
+function renderMeetings(){
+  var posts=db.posts.filter(function(p){return p.classId===curClass.id&&p.type==='meeting';});
+  var iT=me.role==='teacher';
+  var html='';
+  if(iT)html+='<button class="btn btn-video" style="margin-bottom:16px" onclick="startClassMeeting()">🚀 Starta ett möte nu</button>';
+  if(!posts.length){html+='<div class="empty"><div class="em">🎥</div><p>Inga planerade möten</p>'+(iT?'<p style="margin-top:8px">Skapa ett möte från flödet</p>':'')+'</div>';document.getElementById('meetingsInner').innerHTML=html;return;}
+  for(var i=0;i<posts.length;i++){
+    var p=posts[i];
+    // Cacher aux non-invités
+    if(p.invitedIds&&p.invitedIds.length&&me.job!=='Chef'){
+      if(p.invitedIds.indexOf(me.id)<0)continue;
+    }
+    html+='<div class="meeting-card">';
+    html+='<div class="meeting-info"><div class="meeting-name">🎥 '+p.title+'</div>';
+    html+='<div class="meeting-sub">'+p.content+'</div>';
+    if(p.meetDate)html+='<div style="font-size:12px;color:var(--primary);margin-top:4px">📅 '+fDT(p.meetDate)+'</div>';
+    html+='</div>';
+    html+='<button class="btn btn-video" onclick="openMeeting(\''+p.meetRoom+'\',\''+p.title+'\')">Gå med 🎥</button>';
+    html+='</div>';
+  }
+  document.getElementById('meetingsInner').innerHTML=html;
+}
+
+function getPostsForClass(){
+  var posts=db.posts.filter(function(p){return p.classId===curClass.id;});
+  return posts.sort(function(a,b){return new Date(b.at)-new Date(a.at);});
+}
+
+function renderStream(){
+  var posts=getPostsForClass();
+  var iT=me.role==='teacher';
+  var upcoming=posts.filter(function(p){return p.type==='assignment'&&p.due&&new Date(p.due)>=new Date();});
+  var upHtml=upcoming.length?'':'<span> Inga kommande uppgifter</span>';
+  for(var i=0;i<upcoming.length;i++)upHtml+='<div style="padding:6px 0;border-bottom:1px solid var(--border)">'+upcoming[i].title+'<br><span style="color:var(--red)">📅 '+fDate(upcoming[i].due)+'</span></div>';
+  document.getElementById('upcoming').innerHTML=upHtml;
+  if(!posts.length){document.getElementById('streamPosts').innerHTML='<div class="empty"><div class="em">📢</div><p>Inga inlägg</p></div>';return;}
+  var html='';
+  for(var i=0;i<posts.length;i++){
+    var p=posts[i];
+    var isA=p.type==='assignment',isM=p.type==='meeting';
+    // Si c'est une réunion avec invitations, cacher aux non-invités (sauf le Chef créateur)
+    if(isM&&p.invitedIds&&p.invitedIds.length&&me.job!=='Chef'){
+      if(p.invitedIds.indexOf(me.id)<0)continue;
+    }
+    var sub=null;
+    if(isA){for(var j=0;j<db.submissions.length;j++){if(db.submissions[j].postId===p.id&&db.submissions[j].studentId===me.id){sub=db.submissions[j];break;}}}
+    var sc=0;if(isA){for(var j=0;j<db.submissions.length;j++){if(db.submissions[j].postId===p.id)sc++;}}
+    var tname='Lärare';var tuser=null;
+    for(var j=0;j<db.users.length;j++){if(db.users[j].id===p.teacherId){tname=db.users[j].name;tuser=db.users[j];break;}}
+    html+='<div class="post-card">';
+    html+='<div class="post-head">';
+    html+='<div class="post-icon '+(isM?'icon-vid':isA?'icon-ass':'icon-ann')+'">'+(isM?'🎥':isA?'📝':'📢')+'</div>';
+    html+='<div><div class="post-type" style="display:flex;align-items:center;gap:5px">'+(isM?'Möte':isA?'Uppgift':'Meddelande')+(tuser&&tuser.job?' '+jobBadgeHtml(tuser.job):'')+'</div><div class="post-who">'+tname+'</div></div>';
+    html+='<div class="post-date">'+fDT(p.at)+'</div>';
+    if(iT)html+='<button class="btn btn-danger btn-sm" style="margin-left:8px" onclick="delPost(\''+p.id+'\',event)">🗑</button>';
+    html+='</div>';
+    html+='<div class="post-body"'+(isA?' onclick="openAssign(\''+p.id+'\')" style="cursor:pointer"':'')+'>';
+    html+='<div class="post-title">'+p.title+'</div>';
+    html+='<div class="post-text">'+p.content+'</div>';
+    html+='</div>';
+    html+='<div class="post-foot">';
+    if(isA&&p.due)html+='<span class="badge badge-red">📅 '+fDate(p.due)+'</span>';
+    if(isA&&p.pts)html+='<span class="badge badge-green">⭐ '+p.pts+' p</span>';
+    if(!iT&&sub)html+='<span class="badge badge-green">✓ Inlämnad</span>';
+    if(!iT&&sub&&sub.grade!==undefined)html+='<span class="badge badge-blue">Betyg: '+sub.grade+'/'+p.pts+'</span>';
+    if(iT&&isA)html+='<span class="badge badge-blue">'+sc+' inlämning'+(sc!==1?'ar':'')+'</span>';
+    if(isM)html+='<button class="btn btn-video btn-sm" onclick="openMeeting(\''+p.meetRoom+'\',\''+p.title+'\')">🎥 Gå med</button>';
+    if(isA)html+='<button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="openAssign(\''+p.id+'\')">Visa →</button>';
+    html+='</div></div>';
+  }
+  document.getElementById('streamPosts').innerHTML=html;
+}
+
+function renderMembers(){
+  var t=null;for(var i=0;i<db.users.length;i++){if(db.users[i].id===curClass.teacherId){t=db.users[i];break;}}
+  document.getElementById('memberTeacher').innerHTML='<div class="member-row"><div class="avatar" style="background:#0f9d58">'+t.name[0]+'</div><div><b>'+t.name+'</b><div style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px;margin-top:2px">Lärare '+(t.job?jobBadgeHtml(t.job):'')+'</div></div></div>';
+  var studs=[];
+  for(var i=0;i<curClass.studentIds.length;i++){for(var j=0;j<db.users.length;j++){if(db.users[j].id===curClass.studentIds[i]){studs.push(db.users[j]);break;}}}
+  document.getElementById('memberCount').textContent=studs.length;
+  var html=studs.length?'':'<div style="color:var(--text2);font-size:14px">Inga elever inskrivna</div>';
+  for(var i=0;i<studs.length;i++){
+    var s=studs[i];
+    var jobColors={'Chef':'#9334e6','Spion':'#0a0a1a','Taktikgeneral':'#c0392b','Detektiv':'#92400e','Planerare':'#0f9d58','Sekreterare':'#1a73e8','Utförare':'#555'};
+    var bg=s.job&&jobColors[s.job]?jobColors[s.job]:'#1a73e8';
+    html+='<div class="member-row"><div class="avatar" style="background:'+bg+'">'+s.name[0]+'</div><div><b>'+s.name+'</b>'+(s.job?'<div style="margin-top:2px">'+jobBadgeHtml(s.job)+'</div>':'')+'</div></div>';
+  }
+  document.getElementById('memberStudents').innerHTML=html;
+}
+
+function renderGrades(){
+  var asgns=db.posts.filter(function(p){return p.classId===curClass.id&&p.type==='assignment';});
+  var studs=[];
+  for(var i=0;i<curClass.studentIds.length;i++){for(var j=0;j<db.users.length;j++){if(db.users[j].id===curClass.studentIds[i]){studs.push(db.users[j]);break;}}}
+  if(!asgns.length){document.getElementById('gradesInner').innerHTML='<div class="empty"><div class="em">📊</div><p>Inga uppgifter skapade</p></div>';return;}
+  var html='';
+  for(var i=0;i<asgns.length;i++){
+    var a=asgns[i];
+    html+='<div class="card" style="padding:20px;margin-bottom:16px"><div style="font-size:18px;font-weight:700;margin-bottom:4px">'+a.title+'</div>';
+    html+='<div style="font-size:13px;color:var(--text2);margin-bottom:16px">'+(a.due?'📅 '+fDate(a.due):'')+(a.pts?' ⭐ '+a.pts+' p':'')+'</div>';
+    html+='<table class="table"><thead><tr><th>Elev</th><th>Roll</th><th>Inlämnad</th><th>Svar</th><th>Betyg</th><th></th></tr></thead><tbody>';
+    for(var j=0;j<studs.length;j++){
+      var s=studs[j],sub=null;
+      for(var k=0;k<db.submissions.length;k++){if(db.submissions[k].postId===a.id&&db.submissions[k].studentId===s.id){sub=db.submissions[k];break;}}
+      html+='<tr><td><b>'+s.name+'</b></td>';
+      html+='<td>'+(s.job?jobBadgeHtml(s.job):'-')+'</td>';
+      html+='<td>'+(sub?'✅':'❌')+'</td>';
+      html+='<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(sub?sub.content:'-')+'</td>';
+      html+='<td>'+(sub&&sub.grade!==undefined?'<b>'+sub.grade+'/'+a.pts+'</b>':'-')+'</td>';
+      html+='<td>'+(sub?'<button class="btn btn-primary btn-sm" onclick="openGrade(\''+sub.id+'\',\''+a.id+'\')">Rätta</button>':'-')+'</td></tr>';
+    }
+    html+='</tbody></table></div>';
+  }
+  document.getElementById('gradesInner').innerHTML=html;
+}
+
+function openAssign(pid){
+  for(var i=0;i<db.posts.length;i++){if(db.posts[i].id===pid){curPost=db.posts[i];break;}}
+  var iT=me.role==='teacher';
+  document.getElementById('aTitle').textContent=curPost.title;
+  document.getElementById('aContent').textContent=curPost.content;
+  document.getElementById('aDue').textContent=curPost.due?fDate(curPost.due):'Inget sista datum';
+  document.getElementById('aPoints').textContent=curPost.pts?curPost.pts+' poäng':'-';
+  var badges='';
+  if(curPost.due)badges+='<span class="badge badge-red">📅 '+fDate(curPost.due)+'</span>';
+  if(curPost.pts)badges+='<span class="badge badge-green">⭐ '+curPost.pts+' p</span>';
+  document.getElementById('aBadges').innerHTML=badges;
+  if(iT){
+    document.getElementById('aStudentArea').style.display='none';
+    document.getElementById('aTeacherArea').style.display='';
+    renderSubList();
+  } else {
+    document.getElementById('aTeacherArea').style.display='none';
+    document.getElementById('aStudentArea').style.display='';
+    var sub=null;
+    for(var i=0;i<db.submissions.length;i++){if(db.submissions[i].postId===curPost.id&&db.submissions[i].studentId===me.id){sub=db.submissions[i];break;}}
+    if(sub){
+      var st='<div class="alert alert-ok">✅ Inlämnad '+fDT(sub.at)+'</div>';
+      st+='<div style="background:#f8f9fa;padding:12px;border-radius:8px;margin-bottom:12px"><b>Ditt svar:</b><br>'+sub.content+'</div>';
+      if(sub.grade!==undefined)st+='<div class="alert alert-ok">📊 Betyg: <b>'+sub.grade+'/'+curPost.pts+'</b>'+(sub.feedback?'<br>💬 '+sub.feedback:'')+'</div>';
+      else st+='<div style="color:var(--text2);font-size:14px;margin-bottom:12px">⏳ Väntar på rättning...</div>';
+      document.getElementById('aSubStatus').innerHTML=st;
+      document.getElementById('aSubForm').style.display='none';
+    } else {
+      document.getElementById('aSubStatus').innerHTML='';
+      document.getElementById('aSubForm').style.display='';
+      document.getElementById('aSubText').value='';
+    }
+  }
+  showV('vAssign');
+}
+
+function renderSubList(){
+  var subs=db.submissions.filter(function(s){return s.postId===curPost.id;});
+  var studs=[];
+  for(var i=0;i<curClass.studentIds.length;i++){for(var j=0;j<db.users.length;j++){if(db.users[j].id===curClass.studentIds[i]){studs.push(db.users[j]);break;}}}
+  var html='';
+  for(var i=0;i<studs.length;i++){
+    var s=studs[i],sub=null;
+    for(var j=0;j<subs.length;j++){if(subs[j].studentId===s.id){sub=subs[j];break;}}
+    if(!sub){html+='<div class="sub-card"><b>'+s.name+'</b> '+(s.job?jobBadgeHtml(s.job):'')+'<div style="color:var(--red);font-size:13px">Inte inlämnad ännu</div></div>';continue;}
+    html+='<div class="sub-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b>'+s.name+'</b> '+(s.job?jobBadgeHtml(s.job):'');
+    if(sub.grade!==undefined)html+='<span class="badge badge-blue">Betyg: '+sub.grade+'/'+curPost.pts+'</span>';
+    html+='</div><div style="font-size:14px;color:var(--text2);margin-bottom:8px">'+sub.content+'</div>';
+    if(sub.feedback)html+='<div style="font-size:13px;color:var(--text2);margin-bottom:8px">💬 '+sub.feedback+'</div>';
+    html+='<button class="btn btn-primary btn-sm" onclick="openGrade(\''+sub.id+'\',\''+curPost.id+'\')">'+(sub.grade!==undefined?'Ändra':'Rätta')+'</button></div>';
+  }
+  document.getElementById('aSubList').innerHTML=html;
+}
+
+function submitAssignment(){
+  var txt=gv('aSubText');if(!txt){alert('Skriv ditt svar!');return;}
+  db.submissions.push({id:uid(),postId:curPost.id,studentId:me.id,studentName:me.name,content:txt,at:new Date().toISOString()});
+  saveDB();openAssign(curPost.id);
+}
+function backToClass(){openClass(curClass.id);}
+
+function openGrade(subId,postId){
+  gradingId=subId;
+  var post=null,sub=null,stu=null;
+  for(var i=0;i<db.posts.length;i++){if(db.posts[i].id===postId){post=db.posts[i];break;}}
+  for(var i=0;i<db.submissions.length;i++){if(db.submissions[i].id===subId){sub=db.submissions[i];break;}}
+  for(var i=0;i<db.users.length;i++){if(db.users[i].id===sub.studentId){stu=db.users[i];break;}}
+  document.getElementById('gradeInfo').innerHTML='<b>'+stu.name+'</b>'+(stu.job?' '+jobBadgeHtml(stu.job):'')+'<br><span style="font-size:13px;color:var(--text2)">'+sub.content+'</span>';
+  document.getElementById('gradeMax').textContent=post.pts||'?';
+  document.getElementById('gradeVal').value=sub.grade!==undefined?sub.grade:'';
+  document.getElementById('gradeVal').max=post.pts||100;
+  document.getElementById('gradeFb').value=sub.feedback||'';
+  openModal('mGrade');
+}
+function submitGrade(){
+  var g=parseInt(document.getElementById('gradeVal').value);
+  if(isNaN(g)){alert('Ange ett giltigt betyg');return;}
+  for(var i=0;i<db.submissions.length;i++){if(db.submissions[i].id===gradingId){db.submissions[i].grade=g;db.submissions[i].feedback=gv('gradeFb');break;}}
+  saveDB();closeModal('mGrade');
+  if(curPost)renderSubList();
+}
+
+function createClass(){
+  var name=gv('cName');if(!name){alert('Ange ett kursnamn');return;}
+  var code=Math.random().toString(36).slice(2,8).toUpperCase();
+  db.classes.push({id:uid(),name:name,subject:gv('cSub'),teacherId:me.id,teacherName:me.name,code:code,color:parseInt(gv('cColor')),studentIds:[]});
+  saveDB();closeModal('mCreate');
+  document.getElementById('cName').value='';document.getElementById('cSub').value='';
+  renderDash();
+}
+function joinClass(){
+  var code=gv('jCode').toUpperCase(),cls=null;
+  for(var i=0;i<db.classes.length;i++){if(db.classes[i].code===code){cls=db.classes[i];break;}}
+  if(!cls){showErr('errJoin','Ogiltig kod');return;}
+  if(cls.studentIds.indexOf(me.id)>=0){showErr('errJoin','Du är redan med i den här kursen');return;}
+  cls.studentIds.push(me.id);saveDB();closeModal('mJoin');renderDash();
+}
+function delPost(pid,e){
+  e.stopPropagation();if(!confirm('Ta bort inlägget?'))return;
+  db.posts=db.posts.filter(function(p){return p.id!==pid;});
+  saveDB();renderStream();
+}
+
+function setPostType(t){
+  postType=t;
+  document.getElementById('ptAnn').classList.toggle('active',t==='announcement');
+  document.getElementById('ptAss').classList.toggle('active',t==='assignment');
+  document.getElementById('ptVid').classList.toggle('active',t==='meeting');
+  document.getElementById('assignFields').style.display=t==='assignment'?'':'none';
+  document.getElementById('meetingFields').style.display=t==='meeting'?'':'none';
+}
+function openPostModal(){
+  postType='announcement';setPostType('announcement');
+  ['pTitle','pContent','pDue','pPts'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  // Cacher l'onglet Möte si pas Chef
+  document.getElementById('ptVid').style.display=me.job==='Chef'?'':'none';
+  // Remplir la liste d'invitation
+  var allMembers=[];
+  for(var i=0;i<curClass.studentIds.length;i++){
+    for(var j=0;j<db.users.length;j++){
+      if(db.users[j].id===curClass.studentIds[i])allMembers.push(db.users[j]);
+    }
+  }
+  var invHtml='';
+  for(var i=0;i<allMembers.length;i++){
+    var m=allMembers[i];
+    invHtml+='<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer">';
+    invHtml+='<input type="checkbox" value="'+m.id+'" checked style="width:16px;height:16px">';
+    invHtml+=jobBadgeHtml(m.job||'')+' <b>'+m.name+'</b></label>';
+  }
+  document.getElementById('inviteList').innerHTML=invHtml||'<span style="color:var(--text2);font-size:13px">Aucun membre dans ce cours</span>';
+  openModal('mPost');
+}
+function createPost(){
+  var title=gv('pTitle'),content=gv('pContent');
+  if(!title||!content){alert('Fyll i titel och beskrivning');return;}
+  var post={id:uid(),classId:curClass.id,type:postType,title:title,content:content,teacherId:me.id,at:new Date().toISOString()};
+  if(postType==='assignment'){post.due=gv('pDue')||null;post.pts=parseInt(gv('pPts'))||null;}
+  if(postType==='meeting'){
+    post.meetDate=document.getElementById('pMeetDate').value?new Date(document.getElementById('pMeetDate').value).toISOString():new Date().toISOString();
+    post.meetRoom='teamup-'+curClass.code.toLowerCase()+'-'+Date.now();
+    // Récupérer les membres invités cochés
+    var boxes=document.getElementById('inviteList').querySelectorAll('input[type=checkbox]');
+    var invited=[];
+    for(var i=0;i<boxes.length;i++){if(boxes[i].checked)invited.push(boxes[i].value);}
+    post.invitedIds=invited;
+  }
+  db.posts.push(post);saveDB();closeModal('mPost');renderStream();
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+var overlays=document.querySelectorAll('.overlay');
+for(var i=0;i<overlays.length;i++){overlays[i].addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});}
+
+loadDB();
+</script>
+</body>
+</html>
