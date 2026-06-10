@@ -161,6 +161,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 .chat-bar button:hover{background:var(--primary-dark);}
 .chat-empty{text-align:center;color:var(--text2);padding:40px 20px;font-size:14px;}
 
+/* LOADING */
+.loading{position:fixed;inset:0;background:linear-gradient(135deg,#1a73e8,#9334e6);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;color:#fff;}
+.loading-logo{font-size:64px;margin-bottom:16px;animation:pulse 1.5s infinite;}
+.loading-title{font-size:28px;font-weight:700;margin-bottom:8px;}
+.loading-sub{font-size:16px;opacity:.8;}
+.spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-top:20px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+
 @media(max-width:700px){
   .stream-layout,.detail-layout{grid-template-columns:1fr;}
   .stream-sidebar{display:none;}
@@ -171,6 +180,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 </style>
 </head>
 <body>
+
+<!-- LOADING -->
+<div id="vLoading" class="loading">
+  <div class="loading-logo">🤝</div>
+  <div class="loading-title">Team Up</div>
+  <div class="loading-sub" id="loadingMsg">Connexion...</div>
+  <div class="spinner"></div>
+</div>
 
 <!-- VIDEO MÖTE -->
 <div class="video-container" id="videoContainer">
@@ -430,10 +447,41 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
   </div>
 </div></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 <script>
-var db={users:[],classes:[],posts:[],submissions:[],messages:[]};
+// ── FIREBASE ──
+firebase.initializeApp({
+  apiKey:"AIzaSyAbD3BYl372zyV8PFhyOXoS0QGtrMiNago",
+  authDomain:"teamup-6f099.firebaseapp.com",
+  databaseURL:"https://teamup-6f099-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"teamup-6f099",
+  storageBucket:"teamup-6f099.firebasestorage.app",
+  messagingSenderId:"961944054999",
+  appId:"1:961944054999:web:1f57353eeec9c26bea1492"
+});
+var fireDb=firebase.database();
+
+var db={users:[],classes:[],posts:[],submissions:[]};
 var me=null,curClass=null,curPost=null;
+var chatListener=null;
 var postType='announcement',gradingId=null;
+
+function arrToObj(arr){
+  var o={};if(!arr)return o;
+  for(var i=0;i<arr.length;i++){if(arr[i]&&arr[i].id)o[arr[i].id]=arr[i];}
+  return o;
+}
+function objToArr(o){
+  if(!o)return[];
+  if(Array.isArray(o))return o;
+  return Object.values(o);
+}
+function ensureArr(v){
+  if(!v)return[];
+  if(Array.isArray(v))return v;
+  return Object.values(v);
+}
 
 var JOBS={
   'Sekreterare':'🗂️','Spion':'🕵️','Taktikgeneral':'⚔️',
@@ -442,17 +490,37 @@ var JOBS={
 var CHEF_CODE='cool555';
 
 function loadDB(){
-  var s=localStorage.getItem('TU2');
-  if(s){db=JSON.parse(s);if(!db.messages)db.messages=[];}
-  if(!db.users){db.users=[];}
-  if(!db.classes){db.classes=[];}
-  if(!db.posts){db.posts=[];}
-  if(!db.submissions){db.submissions=[];}
-  if(!db.messages){db.messages=[];}
-  saveDB();
+  document.getElementById('loadingMsg').textContent='Chargement des données...';
+  fireDb.ref('teamup').once('value').then(function(snap){
+    var data=snap.val();
+    if(data){
+      db.users=objToArr(data.users);
+      db.classes=objToArr(data.classes);
+      db.posts=objToArr(data.posts);
+      db.submissions=objToArr(data.submissions);
+      // Fix studentIds et invitedIds qui peuvent être des objets Firebase
+      for(var i=0;i<db.classes.length;i++){
+        db.classes[i].studentIds=ensureArr(db.classes[i].studentIds);
+      }
+      for(var i=0;i<db.posts.length;i++){
+        if(db.posts[i].invitedIds)db.posts[i].invitedIds=ensureArr(db.posts[i].invitedIds);
+      }
+    }
+    document.getElementById('vLoading').style.display='none';
+  }).catch(function(err){
+    document.getElementById('loadingMsg').textContent='Erreur de connexion 😕';
+    console.error(err);
+  });
 }
 
-function saveDB(){localStorage.setItem('TU2',JSON.stringify(db));}
+function saveDB(){
+  fireDb.ref('teamup').set({
+    users:arrToObj(db.users),
+    classes:arrToObj(db.classes),
+    posts:arrToObj(db.posts),
+    submissions:arrToObj(db.submissions)
+  });
+}
 function uid(){return 'i'+Date.now()+Math.random().toString(36).slice(2,6);}
 function gv(id){var el=document.getElementById(id);return el?(el.value||'').trim():'';}
 function showErr(id,msg){var el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
@@ -509,7 +577,8 @@ function doRegister(){
   db.users.push(u);saveDB();me=u;onLogin();
 }
 
-function doLogout(){me=null;document.getElementById('navbar').style.display='none';showV('vLogin');}
+function doLogout(){stopChatListener();me=null;document.getElementById('navbar').style.display='none';showV('vLogin');}
+function backToClass(){stopChatListener();openClass(curClass.id);}
 
 function onLogin(){
   document.getElementById('navbar').style.display='flex';
@@ -610,15 +679,29 @@ function switchTab(t,el){
   if(t==='chat'){renderChat();document.getElementById('chatInput').focus();}
 }
 
-// ── CHATT ──
-function renderChat(){
+// ── CHATT (temps réel Firebase) ──
+function startChatListener(){
   if(!curClass)return;
-  var msgs=db.messages.filter(function(m){return m.classId===curClass.id;});
+  stopChatListener();
+  chatListener=fireDb.ref('messages/'+curClass.id).on('value',function(snap){
+    var msgs=[];
+    snap.forEach(function(child){msgs.push(child.val());});
+    renderChatData(msgs);
+  });
+}
+function stopChatListener(){
+  if(curClass&&chatListener!==null){
+    fireDb.ref('messages/'+curClass.id).off('value',chatListener);
+    chatListener=null;
+  }
+}
+function renderChat(){startChatListener();}
+
+function renderChatData(msgs){
   msgs.sort(function(a,b){return new Date(a.at)-new Date(b.at);});
   var wrap=document.getElementById('chatMessages');
   if(!msgs.length){wrap.innerHTML='<div class="chat-empty">💬 Inga meddelanden ännu.<br>Var den första att skriva!</div>';return;}
-  var html='';
-  var lastDate='';
+  var html='',lastDate='';
   for(var i=0;i<msgs.length;i++){
     var m=msgs[i];
     var isMine=m.userId===me.id;
@@ -628,14 +711,13 @@ function renderChat(){
       html+='<div style="text-align:center;font-size:11px;color:var(--text2);margin:4px 0">'+msgDate+'</div>';
       lastDate=msgDate;
     }
-    html+='<div class="chat-msg '+(isMine?'mine':'theirs')+(isChef?' chef-msg':'')+(isMine&&isChef?' chef-msg':'')+'">';
+    html+='<div class="chat-msg '+(isMine?'mine':'theirs')+(isChef?' chef-msg':'')+'">';
     if(!isMine){
-      html+='<div class="chat-meta">';
-      html+=jobBadgeHtml(m.job)+' <b>'+m.userName+'</b>';
+      html+='<div class="chat-meta">'+jobBadgeHtml(m.job)+' <b>'+m.userName+'</b>';
       html+=' <span style="font-size:10px">'+fTime(m.at)+'</span></div>';
     }
     html+='<div class="chat-bubble">'+escHtml(m.content)+'</div>';
-    if(isMine) html+='<div class="chat-meta" style="margin-top:3px">'+fTime(m.at)+'</div>';
+    if(isMine)html+='<div class="chat-meta" style="margin-top:3px">'+fTime(m.at)+'</div>';
     html+='</div>';
   }
   wrap.innerHTML=html;
@@ -647,10 +729,9 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 function sendChat(){
   var txt=gv('chatInput');
   if(!txt||!curClass)return;
-  var msg={id:uid(),classId:curClass.id,userId:me.id,userName:me.name,job:me.job||'',content:txt,at:new Date().toISOString()};
-  db.messages.push(msg);saveDB();
+  var msg={userId:me.id,userName:me.name,job:me.job||'',content:txt,at:new Date().toISOString()};
+  fireDb.ref('messages/'+curClass.id).push(msg);
   document.getElementById('chatInput').value='';
-  renderChat();
 }
 
 // ── MÖTEN ──
@@ -828,7 +909,6 @@ function submitAssignment(){
   db.submissions.push({id:uid(),postId:curPost.id,studentId:me.id,studentName:me.name,content:txt,at:new Date().toISOString()});
   saveDB();openAssign(curPost.id);
 }
-function backToClass(){openClass(curClass.id);}
 
 function openGrade(subId,postId){
   gradingId=subId;
