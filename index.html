@@ -1045,7 +1045,7 @@ function sendXearnes(){
     body:JSON.stringify({
       messages:[{role:'user',content:msg}],
       model:'claude-haiku-4-5-20251001',
-      system:'Tu es Xearnes, un assistant IA intégré dans Team Up, une plateforme de collaboration scolaire. Aide les utilisateurs de façon courte et utile. Réponds en français.',
+      system:'Du är Xearnes, en AI-assistent integrerad i Team Up, en skolsamarbetsplattform. Hjälp användarna på ett kort och användbart sätt. Svara alltid på svenska.',
       max_tokens:300
     })
   })
@@ -1065,10 +1065,10 @@ function sendXearnes(){
     <button class="xe-close" onclick="toggleXearnes()">×</button>
   </div>
   <div class="xe-messages" id="xeMessages">
-    <div class="xe-msg bot">Bonjour ! Je suis Xearnes. Comment puis-je t'aider avec Team Up ?</div>
+    <div class="xe-msg bot">Hej! Jag är Xearnes. Hur kan jag hjälpa dig med Team Up?</div>
   </div>
   <div class="xe-bar">
-    <input class="xe-input" id="xeInput" placeholder="Demande à Xearnes..." onkeydown="if(event.key==='Enter')sendXearnes()"/>
+    <input class="xe-input" id="xeInput" placeholder="Fråga Xearnes..." onkeydown="if(event.key==='Enter')sendXearnes()"/>
     <button class="xe-send" onclick="sendXearnes()">→</button>
   </div>
 </div>
