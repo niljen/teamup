@@ -506,9 +506,19 @@ function loadDB(){
         if(db.posts[i].invitedIds)db.posts[i].invitedIds=ensureArr(db.posts[i].invitedIds);
       }
     }
+    // Restaure la session si l'utilisateur était connecté
+    try{
+      var savedId=localStorage.getItem('tu_uid');
+      if(savedId){
+        for(var i=0;i<db.users.length;i++){
+          if(db.users[i].id===savedId){me=db.users[i];break;}
+        }
+      }
+    }catch(e){}
     document.getElementById('vLoading').style.display='none';
+    if(me){onLogin();}
   }).catch(function(err){
-    document.getElementById('loadingMsg').textContent='Erreur de connexion 😕';
+    document.getElementById('loadingMsg').textContent='Anslutningsfel 😕';
     console.error(err);
   });
 }
@@ -560,7 +570,9 @@ function doLogin(){
   var u=gv('lUser'),p=gv('lPass'),user=null;
   for(var i=0;i<db.users.length;i++){if(db.users[i].username===u&&db.users[i].password===p){user=db.users[i];break;}}
   if(!user){showErr('errLogin','Felaktigt användarnamn eller lösenord');return;}
-  me=user;onLogin();
+  me=user;
+  try{localStorage.setItem('tu_uid',me.id);}catch(e){}
+  onLogin();
 }
 
 function doRegister(){
@@ -573,10 +585,12 @@ function doRegister(){
     for(var i=0;i<db.users.length;i++){if(db.users[i].job==='Chef'){showErr('errReg','❌ Det finns redan en Chef! Det kan bara finnas en.');return;}}
   }
   var u={id:uid(),name:name,username:user,password:pass,role:'member',job:job};
-  db.users.push(u);saveDB();me=u;onLogin();
+  db.users.push(u);saveDB();me=u;
+  try{localStorage.setItem('tu_uid',me.id);}catch(e){}
+  onLogin();
 }
 
-function doLogout(){stopChatListener();me=null;document.getElementById('navbar').style.display='none';showV('vLogin');}
+function doLogout(){stopChatListener();me=null;try{localStorage.removeItem('tu_uid');}catch(e){}document.getElementById('navbar').style.display='none';showV('vLogin');}
 function backToClass(){stopChatListener();openClass(curClass.id);}
 
 function onLogin(){
