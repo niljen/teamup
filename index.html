@@ -490,7 +490,7 @@ var JOBS={
 var CHEF_CODE='cool555';
 
 function loadDB(){
-  document.getElementById('loadingMsg').textContent='Chargement des données...';
+  document.getElementById('loadingMsg').textContent='Laddar data...';
   fireDb.ref('teamup').once('value').then(function(snap){
     var data=snap.val();
     if(data){
@@ -577,8 +577,8 @@ function doLogin(){
 
 function doRegister(){
   var name=gv('rName'),user=gv('rUser'),pass=gv('rPass'),job=document.getElementById('rJob').value;
-  if(!name||!user||!pass){showErr('errReg','Remplis tous les champs');return;}
-  for(var i=0;i<db.users.length;i++){if(db.users[i].username===user){showErr('errReg','Ce nom d\'utilisateur est déjà pris');return;}}
+  if(!name||!user||!pass){showErr('errReg','Fyll i alla fält');return;}
+  for(var i=0;i<db.users.length;i++){if(db.users[i].username===user){showErr('errReg','Det användarnamnet är redan taget');return;}}
   if(job==='Chef'){
     var code=gv('rChefCode');
     if(code!==CHEF_CODE){showErr('errReg','❌ Code secret incorrect !');return;}
