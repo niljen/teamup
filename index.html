@@ -645,9 +645,45 @@ function leaveClass(id){
   saveDB();renderDash();
 }
 
+var _presenceListener=null;
+function _playJoinSound(){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    // Petite mélodie joyeuse : do-mi-sol
+    var notes=[523,659,784];
+    notes.forEach(function(freq,i){
+      var osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.25,ctx.currentTime+i*0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.12+0.18);
+      osc.start(ctx.currentTime+i*0.12);
+      osc.stop(ctx.currentTime+i*0.12+0.18);
+    });
+  }catch(e){}
+}
+function _startPresenceListener(classId,isTeacher){
+  if(_presenceListener){fireDb.ref('presence/'+classId).off('value',_presenceListener);_presenceListener=null;}
+  if(!isTeacher)return; // seulement le chef entend la musique
+  var _knownPresence={};
+  _presenceListener=fireDb.ref('presence/'+classId).on('value',function(snap){
+    var now={};
+    if(snap.exists())snap.forEach(function(c){now[c.key]=c.val();});
+    // Nouveau élève détecté ?
+    Object.keys(now).forEach(function(uid){
+      if(!_knownPresence[uid]&&uid!==me.id)_playJoinSound();
+    });
+    _knownPresence=now;
+  });
+}
 function openClass(id){
   for(var i=0;i<db.classes.length;i++){if(db.classes[i].id===id){curClass=db.classes[i];break;}}
   var iT=curClass.teacherId===me.id;
+  // Enregistre la présence de l'utilisateur dans Firebase
+  var presRef=fireDb.ref('presence/'+curClass.id+'/'+me.id);
+  presRef.set({name:me.name,at:Date.now()});
+  presRef.onDisconnect().remove();
+  _startPresenceListener(curClass.id,iT);
   document.getElementById('classBanner').className='class-banner c'+curClass.color;
   document.getElementById('bannerName').textContent=curClass.name;
   document.getElementById('bannerSub').textContent=curClass.subject;
