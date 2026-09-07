@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Up — Möte</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0d14;color:#fff;font-family:'Segoe UI',Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#0d1020;border-bottom:1px solid #1e2440;flex-shrink:0;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,#1a73e8,#9334e6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.room-name{font-size:14px;color:#8892b0;background:#151928;padding:5px 14px;border-radius:20px;border:1px solid #1e2440;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.participant-count{font-size:13px;color:#8892b0;display:flex;align-items:center;gap:6px;}
+.dot{width:8px;height:8px;border-radius:50%;background:#0f9d58;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;};}
+.timer{font-size:13px;color:#8892b0;font-variant-numeric:tabular-nums;}
+
+/* VIDEO GRID */
+.video-grid{flex:1;display:grid;gap:8px;padding:12px;overflow:hidden;}
+.video-grid.p1{grid-template-columns:1fr;}
+.video-grid.p2{grid-template-columns:1fr 1fr;}
+.video-grid.p3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+.video-grid.p3 .video-tile:first-child{grid-column:1/-1;}
+.video-grid.p4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+.video-grid.p5,.video-grid.p6{grid-template-columns:repeat(3,1fr);}
+
+.video-tile{position:relative;background:#111827;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid transparent;transition:border-color .3s;}
+.video-tile.speaking{border-color:#1a73e8;}
+.video-tile video{width:100%;height:100%;object-fit:cover;display:block;}
+.video-tile.cam-off video{display:none;}
+
+.avatar-placeholder{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;background:linear-gradient(135deg,#1a73e8,#9334e6);}
+
+.tile-name{position:absolute;bottom:10px;left:12px;font-size:13px;font-weight:600;background:rgba(0,0,0,.6);padding:3px 10px;border-radius:20px;display:flex;align-items:center;gap=6px;}
+.tile-muted{position:absolute;top:10px;right:10px;background:rgba(217,48,37,.85);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.tile-you{position:absolute;top:10px;left:10px;background:rgba(26,115,232,.8);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;}
+
+/* LOCAL VIDEO (miniature coin) */
+.local-pip{position:fixed;bottom:100px;right:16px;width:160px;height:110px;border-radius:12px;overflow:hidden;border:2px solid #1a73e8;background:#111827;cursor:move;z-index:50;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+.local-pip video{width:100%;height:100%;object-fit:cover;}
+.local-pip .pip-name{position:absolute;bottom:4px;left:8px;font-size:11px;font-weight:600;background:rgba(0,0,0,.6);padding:2px 7px;border-radius:10px;}
+
+/* BACKGROUND PICKER */
+.bg-panel{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#0d1020;border:1px solid #1e2440;border-radius:16px;padding:16px 20px;display:none;z-index:60;box-shadow:0 8px 32px rgba(0,0,0,.6);min-width:340px;}
+.bg-panel.open{display:block;}
+.bg-panel h4{font-size:13px;color:#8892b0;margin-bottom:12px;font-weight:500;}
+.bg-options{display:flex;gap:10px;flex-wrap:wrap;}
+.bg-opt{width:72px;height:50px;border-radius:8px;cursor:pointer;border:2px solid transparent;overflow:hidden;position:relative;flex-shrink:0;transition:border-color .2s;}
+.bg-opt:hover,.bg-opt.active{border-color:#1a73e8;}
+.bg-opt span{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:9px;color:#fff;background:rgba(0,0,0,.5);padding:1px 0;}
+.bg-none{background:#111827;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.bg-blur{background:linear-gradient(135deg,#1a2040,#2a3460);display:flex;align-items:center;justify-content:center;font-size:20px;}
+
+/* CONTROLS */
+.controls{display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 20px;background:#0d1020;border-top:1px solid #1e2440;flex-shrink:0;}
+.ctrl-btn{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border:none;background:none;color:#fff;}
+.ctrl-btn .icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .2s;background:#1e2440;}
+.ctrl-btn:hover .icon{background:#2a3460;}
+.ctrl-btn.off .icon{background:#d93025;}
+.ctrl-btn .label{font-size:11px;color:#8892b0;}
+.ctrl-btn.end .icon{background:linear-gradient(135deg,#d93025,#9c1010);width:60px;height:60px;font-size:22px;}
+.ctrl-btn.end .label{color:#ff6b6b;}
+
+/* CHAT LATÉRAL */
+.side-chat{position:fixed;right:0;top:0;bottom:0;width:300px;background:#0d1020;border-left:1px solid #1e2440;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s;z-index:40;}
+.side-chat.open{transform:translateX(0);}
+.side-chat-head{padding:16px;border-bottom:1px solid #1e2440;display:flex;align-items:center;justify-content:space-between;}
+.side-chat-head h3{font-size:15px;font-weight:600;}
+.side-chat-close{background:none;border:none;color:#8892b0;font-size:20px;cursor:pointer;}
+.side-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;}
+.side-msg{background:#151928;border-radius:8px;padding:8px 10px;font-size:13px;}
+.side-msg .who{font-weight:600;color:#1a73e8;font-size:11px;margin-bottom:3px;}
+.side-msg-bar{display:flex;gap:8px;padding:12px;border-top:1px solid #1e2440;}
+.side-msg-bar input{flex:1;background:#151928;border:1px solid #1e2440;color:#fff;border-radius:8px;padding:8px 12px;font-size:13px;outline:none;}
+.side-msg-bar input:focus{border-color:#1a73e8;}
+.side-msg-bar button{background:#1a73e8;color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;}
+
+/* TOAST */
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1e2440;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;border:1px solid #2a3460;}
+.toast.show{opacity:1;}
+
+/* WAITING */
+.waiting{position:fixed;inset:0;background:#0a0d14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:200;}
+.waiting-logo{font-size:56px;}
+.waiting h2{font-size:22px;font-weight:700;}
+.waiting p{color:#8892b0;font-size:14px;}
+.spinner{width:36px;height:36px;border:3px solid #1e2440;border-top-color:#1a73e8;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.waiting-info{background:#151928;border:1px solid #1e2440;border-radius:12px;padding:16px 24px;text-align:center;margin-top:8px;}
+.waiting-info .room-code{font-size:28px;font-weight:700;letter-spacing:4px;color:#1a73e8;margin:6px 0;}
+.waiting-info p{font-size:12px;color:#8892b0;}
+
+@media(max-width:600px){
+  .local-pip{width:100px;height:70px;bottom:90px;}
+  .ctrl-btn .icon{width:44px;height:44px;font-size:17px;}
+  .ctrl-btn.end .icon{width:52px;height:52px;}
+  .side-chat{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- WAITING SCREEN -->
+<div class="waiting" id="waiting">
+  <div class="waiting-logo">🤝</div>
+  <h2>Ansluter till mötet...</h2>
+  <div class="spinner"></div>
+  <div class="waiting-info">
+    <p>Rumskod</p>
+    <div class="room-code" id="waitRoomCode">—</div>
+    <p>Dela den med andra för att bjuda in dem</p>
+  </div>
+  <p id="waitStatus" style="color:#8892b0;font-size:13px">Startar kamera...</p>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">🤝 Team Up</div>
+    <div class="room-name" id="headerRoom">Möte</div>
+  </div>
+  <div class="header-right">
+    <div class="participant-count"><div class="dot"></div><span id="pCount">1</span> deltagare</div>
+    <div class="timer" id="timerEl">00:00</div>
+  </div>
+</div>
+
+<!-- VIDEO GRID -->
+<div class="video-grid p1" id="videoGrid"></div>
+
+<!-- LOCAL PIP -->
+<div class="local-pip" id="localPip">
+  <video id="localVideo" autoplay muted playsinline></video>
+  <div class="pip-name" id="pipName">Du</div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <button class="ctrl-btn" id="btnMic" onclick="toggleMic()">
+    <div class="icon">🎙️</div>
+    <div class="label">Mikrofon</div>
+  </button>
+  <button class="ctrl-btn" id="btnCam" onclick="toggleCam()">
+    <div class="icon">📹</div>
+    <div class="label">Kamera</div>
+  </button>
+  <button class="ctrl-btn end" onclick="endCall()">
+    <div class="icon">📵</div>
+    <div class="label">Lämna</div>
+  </button>
+  <button class="ctrl-btn" onclick="toggleChat()">
+    <div class="icon">💬</div>
+    <div class="label">Chatt</div>
+  </button>
+  <button class="ctrl-btn" onclick="copyLink()">
+    <div class="icon">🔗</div>
+    <div class="label">Dela</div>
+  </button>
+  <button class="ctrl-btn" id="btnBg" onclick="toggleBgPanel()">
+    <div class="icon">🖼️</div>
+    <div class="label">Bakgrund</div>
+  </button>
+</div>
+
+<!-- BACKGROUND PICKER -->
+<div class="bg-panel" id="bgPanel">
+  <h4>🖼️ Välj bakgrund</h4>
+  <div class="bg-options" id="bgOptions">
+    <div class="bg-opt bg-none active" data-bg="none" onclick="setBg('none',this)" title="Ingen"><span>Ingen</span></div>
+    <div class="bg-opt bg-blur" data-bg="blur" onclick="setBg('blur',this)" title="Suddig"><span>Suddig</span></div>
+    <div class="bg-opt" data-bg="color:#1a73e8" onclick="setBg('color:#1a73e8',this)" style="background:#1a73e8"><span>Blå</span></div>
+    <div class="bg-opt" data-bg="color:#0f9d58" onclick="setBg('color:#0f9d58',this)" style="background:#0f9d58"><span>Grön</span></div>
+    <div class="bg-opt" data-bg="color:#9334e6" onclick="setBg('color:#9334e6',this)" style="background:#9334e6"><span>Lila</span></div>
+    <div class="bg-opt" data-bg="color:#000000" onclick="setBg('color:#000000',this)" style="background:#000"><span>Svart</span></div>
+    <div class="bg-opt" data-bg="img:space" onclick="setBg('img:space',this)" style="background:linear-gradient(135deg,#0a0a2e,#1a0050,#000428);"><span>Rymden 🚀</span></div>
+    <div class="bg-opt" data-bg="img:forest" onclick="setBg('img:forest',this)" style="background:linear-gradient(135deg,#1b4332,#40916c,#52b788);"><span>Skog 🌲</span></div>
+    <div class="bg-opt" data-bg="img:office" onclick="setBg('img:office',this)" style="background:linear-gradient(135deg,#374151,#6b7280,#9ca3af);"><span>Kontor 🏢</span></div>
+    <div class="bg-opt" data-bg="img:teamup" onclick="setBg('img:teamup',this)" style="background:linear-gradient(135deg,#1a73e8,#9334e6);"><span>Team Up ✨</span></div>
+  </div>
+</div>
+
+<!-- SIDE CHAT -->
+<div class="side-chat" id="sideChat">
+  <div class="side-chat-head">
+    <h3>💬 Möteschatt</h3>
+    <button class="side-chat-close" onclick="toggleChat()">×</button>
+  </div>
+  <div class="side-msgs" id="sideMsgs"></div>
+  <div class="side-msg-bar">
+    <input id="chatIn" placeholder="Skriv ett meddelande..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button onclick="sendMsg()">→</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Canvas caché pour le background virtuel -->
+<canvas id="bgCanvas" style="display:none"></canvas>
+<video id="rawVideo" autoplay muted playsinline style="display:none"></video>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+<script>
+// ── BACKGROUND VIRTUEL ──
+var bgMode = 'none'; // none | blur | color:#xxx | img:xxx
+var segmentation = null;
+var bgCanvas = document.getElementById('bgCanvas');
+var bgCtx = bgCanvas.getContext('2d');
+var rawVideo = document.getElementById('rawVideo');
+var processedStream = null;
+var bgActive = false;
+var animFrame = null;
+
+var BG_IMAGES = {
+  space:   {type:'gradient', stops:['#000428','#004e92']},
+  forest:  {type:'gradient', stops:['#134e5e','#71b280']},
+  office:  {type:'gradient', stops:['#373b44','#4286f4']},
+  teamup:  {type:'gradient', stops:['#1a73e8','#9334e6']},
+};
+
+function toggleBgPanel(){
+  document.getElementById('bgPanel').classList.toggle('open');
+}
+
+function setBg(mode, el){
+  bgMode = mode;
+  document.querySelectorAll('.bg-opt').forEach(function(o){o.classList.remove('active');});
+  if(el) el.classList.add('active');
+  document.getElementById('bgPanel').classList.remove('open');
+
+  if(mode === 'none'){
+    stopBgProcessing();
+  } else {
+    startBgProcessing();
+  }
+}
+
+function stopBgProcessing(){
+  bgActive = false;
+  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
+  // Revenir au flux brut
+  var localVid = document.getElementById('localVideo');
+  if(rawVideo.srcObject) localVid.srcObject = rawVideo.srcObject;
+  if(localStream) {
+    // Remplacer la piste vidéo dans localStream par la piste originale
+    var rawTrack = rawVideo.srcObject && rawVideo.srcObject.getVideoTracks()[0];
+    if(rawTrack){
+      var sender = localStream.getVideoTracks();
+      // reconstruire le stream avec la piste brute
+      localStream = new MediaStream([rawTrack, ...localStream.getAudioTracks()]);
+      document.getElementById('localVideo').srcObject = localStream;
+      reconnectPeerStreams();
+    }
+  }
+}
+
+function startBgProcessing(){
+  if(!rawVideo.srcObject) return;
+  bgActive = true;
+  bgCanvas.width  = rawVideo.videoWidth  || 640;
+  bgCanvas.height = rawVideo.videoHeight || 480;
+
+  if(!segmentation){
+    segmentation = new SelfieSegmentation({locateFile:function(f){
+      return 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/'+f;
+    }});
+    segmentation.setOptions({modelSelection:1, selfieMode:true});
+    segmentation.onResults(onSegmentationResults);
+  }
+
+  processFrame();
+  // Créer un stream depuis le canvas
+  processedStream = bgCanvas.captureStream(25);
+  var audioTracks = localStream.getAudioTracks();
+  localStream = new MediaStream([...processedStream.getVideoTracks(), ...audioTracks]);
+  document.getElementById('localVideo').srcObject = localStream;
+  reconnectPeerStreams();
+}
+
+function processFrame(){
+  if(!bgActive){return;}
+  if(rawVideo.readyState >= 2){
+    bgCanvas.width  = rawVideo.videoWidth;
+    bgCanvas.height = rawVideo.videoHeight;
+    segmentation.send({image: rawVideo}).catch(function(){});
+  }
+  animFrame = requestAnimationFrame(processFrame);
+}
+
+function onSegmentationResults(results){
+  var w = bgCanvas.width, h = bgCanvas.height;
+  bgCtx.save();
+  bgCtx.clearRect(0,0,w,h);
+
+  // Dessiner le masque
+  bgCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+
+  // Garder uniquement la personne
+  bgCtx.globalCompositeOperation = 'source-in';
+  bgCtx.drawImage(results.image, 0, 0, w, h);
+
+  // Dessiner la personne dans un canvas temporaire
+  var personData = bgCtx.getImageData(0, 0, w, h);
+
+  // Dessiner le fond
+  bgCtx.globalCompositeOperation = 'destination-over';
+
+  if(bgMode === 'blur'){
+    // Fond flouté = vidéo originale avec filtre
+    bgCtx.filter = 'blur(16px)';
+    bgCtx.drawImage(results.image, 0, 0, w, h);
+    bgCtx.filter = 'none';
+  } else if(bgMode.startsWith('color:')){
+    bgCtx.fillStyle = bgMode.slice(6);
+    bgCtx.fillRect(0,0,w,h);
+  } else if(bgMode.startsWith('img:')){
+    var key = bgMode.slice(4);
+    var bg  = BG_IMAGES[key];
+    if(bg && bg.type === 'gradient'){
+      var grad = bgCtx.createLinearGradient(0,0,w,h);
+      grad.addColorStop(0, bg.stops[0]);
+      grad.addColorStop(1, bg.stops[1]);
+      bgCtx.fillStyle = grad;
+      bgCtx.fillRect(0,0,w,h);
+    }
+  }
+
+  bgCtx.restore();
+}
+
+function reconnectPeerStreams(){
+  // Mettre à jour la piste vidéo pour tous les peers connectés
+  Object.values(peers).forEach(function(p){
+    if(p.call && p.call.peerConnection){
+      var pc = p.call.peerConnection;
+      var senders = pc.getSenders();
+      var newTrack = localStream.getVideoTracks()[0];
+      senders.forEach(function(s){
+        if(s.track && s.track.kind==='video' && newTrack) s.replaceTrack(newTrack);
+      });
+    }
+  });
+}
+
+// ── CONFIG ──
+firebase.initializeApp({
+  apiKey:"AIzaSyAbD3BYl372zyV8PFhyOXoS0QGtrMiNago",
+  authDomain:"teamup-6f099.firebaseapp.com",
+  databaseURL:"https://teamup-6f099-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"teamup-6f099",
+  storageBucket:"teamup-6f099.firebasestorage.app",
+  messagingSenderId:"961944054999",
+  appId:"1:961944054999:web:1f57353eeec9c26bea1492"
+});
+var fireDb = firebase.database();
+
+// ── PARAMÈTRES URL ──
+var params = new URLSearchParams(location.search);
+var roomId  = params.get('room') || 'room-' + Math.random().toString(36).slice(2,8);
+var myName  = params.get('name') || 'Deltagare';
+
+document.getElementById('waitRoomCode').textContent = roomId.toUpperCase();
+document.getElementById('headerRoom').textContent   = '📍 ' + roomId;
+document.getElementById('pipName').textContent      = myName;
+
+// ── ÉTAT ──
+var localStream = null;
+var peer        = null;
+var myPeerId    = null;
+var peers       = {};      // peerId → { call, stream, name }
+var micOn       = true;
+var camOn       = true;
+var startTime   = null;
+var timerInt    = null;
+var roomRef     = null;
+
+// ── TIMER ──
+function startTimer(){
+  startTime = Date.now();
+  timerInt = setInterval(function(){
+    var s = Math.floor((Date.now()-startTime)/1000);
+    var m = Math.floor(s/60); s = s%60;
+    document.getElementById('timerEl').textContent =
+      String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }, 1000);
+}
+
+// ── TOAST ──
+function toast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show');}, 2500);
+}
+
+// ── CONTROLES ──
+function toggleMic(){
+  micOn = !micOn;
+  localStream.getAudioTracks().forEach(function(t){t.enabled=micOn;});
+  var btn = document.getElementById('btnMic');
+  btn.classList.toggle('off', !micOn);
+  btn.querySelector('.icon').textContent = micOn ? '🎙️' : '🔇';
+  btn.querySelector('.label').textContent = micOn ? 'Mikrofon' : 'Tystat';
+  updatePresence();
+}
+function toggleCam(){
+  camOn = !camOn;
+  localStream.getVideoTracks().forEach(function(t){t.enabled=camOn;});
+  var btn = document.getElementById('btnCam');
+  btn.classList.toggle('off', !camOn);
+  btn.querySelector('.icon').textContent = camOn ? '📹' : '🚫';
+  btn.querySelector('.label').textContent = camOn ? 'Kamera' : 'Kamera av';
+  document.getElementById('localVideo').style.display = camOn ? '' : 'none';
+  updatePresence();
+}
+function endCall(){
+  if(roomRef) roomRef.remove();
+  Object.values(peers).forEach(function(p){if(p.call)p.call.close();});
+  localStream.getTracks().forEach(function(t){t.stop();});
+  if(timerInt) clearInterval(timerInt);
+  if(window.opener) window.close();
+  else location.href = 'index.html';
+}
+function toggleChat(){document.getElementById('sideChat').classList.toggle('open');}
+function copyLink(){
+  var url = location.href;
+  navigator.clipboard.writeText(url).then(function(){toast('🔗 Länk kopierad!');});
+}
+
+// ── VIDEO GRID ──
+function updateGrid(){
+  var grid   = document.getElementById('videoGrid');
+  var count  = Object.keys(peers).length;
+  var classes= ['','p1','p2','p3','p4','p5','p6'];
+  grid.className = 'video-grid ' + (classes[Math.min(count,6)] || 'p6');
+  document.getElementById('pCount').textContent = count + 1;
+
+  grid.innerHTML = '';
+  Object.keys(peers).forEach(function(pid){
+    var p = peers[pid];
+    var tile = document.createElement('div');
+    tile.className = 'video-tile';
+    tile.id = 'tile-' + pid;
+
+    var video = document.createElement('video');
+    video.autoplay = true; video.playsinline = true;
+    if(p.stream) video.srcObject = p.stream;
+    tile.appendChild(video);
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'tile-name';
+    nameEl.textContent = p.name || 'Deltagare';
+    tile.appendChild(nameEl);
+
+    if(p.muted){
+      var muteEl = document.createElement('div');
+      muteEl.className = 'tile-muted';
+      muteEl.textContent = '🔇';
+      tile.appendChild(muteEl);
+    }
+    grid.appendChild(tile);
+  });
+}
+
+// ── CHAT MESSAGES ──
+function addChatMsg(who, text){
+  var msgs = document.getElementById('sideMsgs');
+  var div  = document.createElement('div');
+  div.className = 'side-msg';
+  div.innerHTML = '<div class="who">'+escHtml(who)+'</div>'+escHtml(text);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function sendMsg(){
+  var inp = document.getElementById('chatIn');
+  var txt = inp.value.trim(); if(!txt) return;
+  inp.value = '';
+  addChatMsg('Du', txt);
+  // Envoyer à tous les peers via dataChannel
+  Object.values(peers).forEach(function(p){
+    if(p.conn && p.conn.open) p.conn.send({type:'chat',name:myName,text:txt});
+  });
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── FIREBASE SIGNALING ──
+function updatePresence(){
+  if(!roomRef || !myPeerId) return;
+  roomRef.set({name: myName, peerId: myPeerId, muted: !micOn, camOff: !camOn, at: Date.now()});
+}
+
+function connectToPeer(peerId, peerName){
+  if(peers[peerId] || peerId === myPeerId) return;
+  peers[peerId] = {name: peerName, stream: null, call: null, conn: null};
+  updateGrid();
+
+  // Appel vidéo
+  var call = peer.call(peerId, localStream, {metadata:{name:myName}});
+  call.on('stream', function(remoteStream){
+    peers[peerId].stream = remoteStream;
+    peers[peerId].call   = call;
+    updateGrid();
+  });
+  call.on('close', function(){delete peers[peerId]; updateGrid();});
+  call.on('error', function(){delete peers[peerId]; updateGrid();});
+
+  // Canal données (chat)
+  var conn = peer.connect(peerId, {metadata:{name:myName}});
+  conn.on('open', function(){peers[peerId].conn = conn;});
+  conn.on('data', function(data){
+    if(data.type==='chat') addChatMsg(data.name, data.text);
+  });
+}
+
+function initSignaling(){
+  var roomRoot = fireDb.ref('meetings/' + roomId);
+  roomRef = roomRoot.child(myPeerId);
+  updatePresence();
+  // Nettoyage quand on part
+  roomRef.onDisconnect().remove();
+
+  // Écouter les autres participants
+  roomRoot.on('child_added', function(snap){
+    var data = snap.val();
+    if(data && data.peerId && data.peerId !== myPeerId){
+      connectToPeer(data.peerId, data.name);
+    }
+  });
+  roomRoot.on('child_changed', function(snap){
+    var data = snap.val();
+    if(data && data.peerId && peers[data.peerId]){
+      peers[data.peerId].name  = data.name;
+      peers[data.peerId].muted = data.muted;
+      updateGrid();
+    }
+  });
+  roomRoot.on('child_removed', function(snap){
+    var data = snap.val();
+    if(data && data.peerId && peers[data.peerId]){
+      if(peers[data.peerId].call) peers[data.peerId].call.close();
+      delete peers[data.peerId];
+      updateGrid();
+      toast('👋 ' + (data.name||'En deltagare') + ' lämnade mötet');
+    }
+  });
+}
+
+// ── RÉPONDRE AUX APPELS ENTRANTS ──
+function setupIncomingCalls(){
+  peer.on('call', function(call){
+    call.answer(localStream);
+    var pid  = call.peer;
+    var name = call.metadata && call.metadata.name ? call.metadata.name : 'Deltagare';
+    if(!peers[pid]) peers[pid] = {name:name, stream:null, call:null, conn:null};
+    call.on('stream', function(remoteStream){
+      peers[pid].stream = remoteStream;
+      peers[pid].call   = call;
+      updateGrid();
+      toast('👋 ' + name + ' gick med i mötet!');
+    });
+    call.on('close', function(){delete peers[pid]; updateGrid();});
+  });
+  peer.on('connection', function(conn){
+    var pid = conn.peer;
+    conn.on('open', function(){
+      if(peers[pid]) peers[pid].conn = conn;
+      conn.on('data', function(data){
+        if(data.type==='chat') addChatMsg(data.name, data.text);
+      });
+    });
+  });
+}
+
+// ── DÉMARRAGE ──
+async function start(){
+  document.getElementById('waitStatus').textContent = 'Startar kamera och mikrofon...';
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+  } catch(e){
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({video:false, audio:true});
+      camOn = false;
+      document.getElementById('btnCam').classList.add('off');
+      toast('📷 Ingen kamera hittades — bara ljud');
+    } catch(e2){
+      document.getElementById('waitStatus').textContent = '❌ Kamera/mikrofon nekad. Tillåt åtkomst och ladda om.';
+      return;
+    }
+  }
+
+  document.getElementById('localVideo').srcObject = localStream;
+  rawVideo.srcObject = localStream; // copie pour MediaPipe
+  document.getElementById('waitStatus').textContent = 'Ansluter till rummet...';
+
+  peer = new Peer(undefined, {
+    host: '0.peerjs.com', port: 443, path: '/', secure: true,
+    config: {iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}
+  });
+
+  peer.on('open', function(id){
+    myPeerId = id;
+    document.getElementById('waiting').style.display = 'none';
+    setupIncomingCalls();
+    initSignaling();
+    startTimer();
+  });
+
+  peer.on('error', function(err){
+    document.getElementById('waitStatus').textContent = '❌ Fel: ' + err.type;
+    console.error(err);
+  });
+}
+
+start();
+</script>
+</body>
+</html>
